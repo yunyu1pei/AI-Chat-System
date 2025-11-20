@@ -528,9 +528,10 @@ async def delete_message(session_id: str, msg_index: int) -> List[Dict[str, Any]
     
     参数:
       msg_index: 要删除的消息索引
-    
+    //ss
     返回: 删除后的消息列表
     """
+    ss=1;
     sess = get_session_or_404(session_id)
     total = len(sess["messages"])
 
