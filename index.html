@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI 对话系统前端示例（Vue 3）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/themes.css" />
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    [v-cloak] { display: none; }
+  </style>
+</head>
+<body>
+  <div id="app" class="app-shell" :class="'theme-' + currentTheme" v-cloak>
+    <!-- 左侧：会话列表 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          <span class="icon"></span>
+          <span>AI 对话会话列表</span>
+        </div>
+        <div class="sidebar-sub">基于 Python 后端的多会话对话系统</div>
+      </div>
+      <div class="sidebar-actions">
+        <button class="btn small" @click="createNewSession" :disabled="loading">
+          <span>＋ 新建会话</span>
+        </button>
+      </div>
+      <div class="session-list" v-if="sessions.length">
+        <div
+          v-for="s in sessions"
+          :key="s.id"
+          class="session-item"
+          :class="{ active: s.id === currentSessionId }"
+          @click="selectSession(s.id)"
+        >
+          <div class="session-name">{{ s.name || ('会话 ' + s.id) }}</div>
+          <div class="session-meta">
+            <span>{{ (s.message_count ?? 0) }} 条消息</span>
+            <span v-if="s.updated_at">{{ formatTime(s.updated_at) }}</span>
+          </div>
+          <button
+            class="session-delete-btn"
+            @click.stop="deleteSession(s.id)"
+            :disabled="loading"
+            title="删除这个会话"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+      <div class="session-empty" v-else>
+        暂无会话，点击上方「新建会话」开始聊天。
+      </div>
+    </aside>
+
+    <!-- 右侧：聊天区域 -->
+    <section class="main-pane">
+      <header class="main-header">
+        <div>
+          <div class="main-title">
+            {{ currentSessionTitle }}
+          </div>
+          <div class="main-subtitle">
+            支持多会话、消息回滚。回滚会让后端把会话状态恢复到指定消息之前。
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+          <span>主题：</span>
+          <select
+            v-model="currentTheme"
+            style="background:#020617;border-radius:999px;border:1px solid #4b5563;color:#e5e7eb;padding:4px 10px;outline:none;"
+          >
+            <option v-for="t in themeOptions" :key="t.key" :value="t.key">
+              {{ t.label }}
+            </option>
+          </select>
+        </div>
+        <div class="badge">
+          <span class="badge-dot"></span>
+          <span v-if="loading">正在处理...</span>
+          <span v-else>就绪</span>
+        </div>
+      </header>
+
+      <div v-if="error" class="error-banner">
+        {{ error }}
+      </div>
+
+      <div class="messages" ref="messagesScroller">
+        <div
+          v-for="(m, idx) in messages"
+          :key="m.id || idx"
+          class="message-row"
+          :class="m.role === 'user' ? 'user' : 'assistant'"
+        >
+          <div class="bubble" :class="m.role === 'user' ? 'user' : 'assistant'">
+            <div class="bubble-header">
+              <span>{{ m.role === 'user' ? '用户' : '助手' }}</span>
+              <span v-if="m.created_at">{{ formatTime(m.created_at) }}</span>
+            </div>
+            <div class="bubble-content">{{ m.content }}</div>
+            <div class="bubble-footer" style="gap: 12px;">
+              <!-- 回滚到该条消息（不包含该条） -->
+              <span
+                class="rollback-link"
+                @click="rollbackTo(idx)"
+                v-if="!loading && messages.length > 0"
+              >
+                回滚到此处之前
+              </span>
+              <!-- 删除该条消息 -->
+              <span
+                class="rollback-link"
+                @click="deleteMsg(idx)"
+                v-if="!loading"
+                style="color: #f87171;"
+              >
+                删除
+              </span>
+            </div>
+          </div>
+        </div>
+        <div v-if="!messages.length" style="font-size:13px;color:#9ca3af;">
+          暂无消息，先在下方输入框里说点什么吧～
+        </div>
+      </div>
+
+      <footer class="input-area">
+        <div class="textarea-row">
+          <textarea
+            v-model="newMessage"
+            placeholder="输入你的问题，按 Enter 发送，Ctrl+Enter 换行"
+            @keydown.enter.prevent="handleEnterKey"
+          ></textarea>
+          <button class="btn" style="align-self:flex-end;" @click="sendMsg" :disabled="!canSend">
+            发送
+          </button>
+        </div>
+        <div class="input-meta">
+          <span class="status-text">
+            <span class="dot-loading" v-if="loading"></span>
+            <span v-if="loading">正在向后端请求 AI 回复...</span>
+            <span v-else>接口地址：{{ apiBase }}</span>
+          </span>
+          <span>Enter 发送 · Ctrl+Enter 换行</span>
+        </div>
+      </footer>
+    </section>
+  </div>
+
+  <script src="themes.js"></script>
+  <script>
+    // 确保 themes.js 已加载，等待 window.CHAT_THEMES 可用
+    if (!window.CHAT_THEMES) {
+      console.warn('themes.js 未加载，使用默认主题');
+      window.CHAT_THEMES = [{ key: 'default', label: '默认主题' }];
+    }
+  </script>
+  <script type="module">
+    import { setupApp } from './js/app.js';
+    const { createApp } = Vue;
+    createApp({
+      setup() {
+        return setupApp();
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

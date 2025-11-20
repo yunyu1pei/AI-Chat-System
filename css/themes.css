@@ -1,0 +1,101 @@
+/* Theme Styles */
+
+/* Default Theme */
+body.theme-default {
+  background: #020617;
+}
+
+body.theme-default .background-watermark {
+  color: #1f2937;
+}
+
+.theme-default .sidebar {
+  background: radial-gradient(circle at top left, #1e293b, #020617);
+}
+
+.theme-default .main-pane {
+  background: radial-gradient(circle at top, #020617, #020617 55%, #030712);
+}
+
+/* Pink Theme */
+body.theme-pink {
+  background: #2a0a2f;
+}
+
+body.theme-pink .background-watermark {
+  color: #f8a8d8;
+  opacity: 0.08;
+}
+
+.theme-pink .sidebar {
+  background: radial-gradient(circle at top left, #4b164c, #020617);
+}
+
+.theme-pink .main-pane {
+  background: radial-gradient(circle at top, #3b0764, #a21caf 55%, #020617);
+}
+
+.theme-pink .btn {
+  background: linear-gradient(135deg, #f472b6, #fb7185);
+}
+
+.theme-pink .bubble.user {
+  background: linear-gradient(135deg, #f9a8d4, #fb7185);
+  color: #3b0764;
+}
+
+/* Dark Theme */
+body.theme-dark {
+  background: #020617;
+}
+
+body.theme-dark .background-watermark {
+  color: #0c111d;
+  opacity: 0.12;
+}
+
+.theme-dark .sidebar {
+  background: radial-gradient(circle at top left, #020617, #000000);
+}
+
+.theme-dark .main-pane {
+  background: radial-gradient(circle at top, #020617, #020617 55%, #000000);
+}
+
+.theme-dark .btn {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+.theme-dark .bubble.user {
+  background: linear-gradient(135deg, #111827, #374151);
+  color: #e5e7eb;
+}
+
+/* Gold Theme */
+body.theme-gold {
+  background: #3b2600;
+}
+
+body.theme-gold .background-watermark {
+  color: #facc15;
+  opacity: 0.08;
+}
+
+.theme-gold .sidebar {
+  background: radial-gradient(circle at top left, #78350f, #0b1120);
+}
+
+.theme-gold .main-pane {
+  background: radial-gradient(circle at top, #854d0e, #f59e0b 55%, #451a03);
+}
+
+.theme-gold .btn {
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  color: #111827;
+}
+
+.theme-gold .bubble.user {
+  background: linear-gradient(135deg, #facc15, #f97316);
+  color: #111827;
+}
